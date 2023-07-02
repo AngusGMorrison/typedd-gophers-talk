@@ -1,11 +1,12 @@
-package user
+package users
 
 import "fmt"
 
 type Field int
 
 const (
-	EmailField Field = iota + 1
+	IDField Field = iota + 1
+	EmailField
 	PasswordHashField
 	BioField
 )
@@ -36,6 +37,14 @@ func (e *ParseError) Cause() error {
 
 func (e *ParseError) Error() string {
 	return fmt.Sprintf("invalid %s: %v", fieldStrings[e.field], e.messages)
+}
+
+func NewParseUUIDError(cause error) *ParseError {
+	return &ParseError{
+		field:    IDField,
+		messages: []string{"invalid UUID"},
+		cause:    cause,
+	}
 }
 
 func NewParseRFC5233EmailError(cause error) *ParseError {
