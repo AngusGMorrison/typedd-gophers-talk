@@ -1,0 +1,5 @@
+*.env
+notes.md
+bin/*
+.vscode
+.idea
