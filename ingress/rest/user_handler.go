@@ -2,14 +2,14 @@ package rest
 
 import (
 	"encoding/json"
-	"github.com/angusgmorrison/typeddtalk/domain"
+	"github.com/angusgmorrison/typeddtalk/domain/user"
 	"io"
 	"net/http"
 )
 
 // userHandler handles all requests to /users.
 type userHandler struct {
-	service domain.UserService
+	service user.Service
 }
 
 type createUserRequestBody struct {
@@ -19,18 +19,18 @@ type createUserRequestBody struct {
 }
 
 // toDomain attempts to construct a valid [CreateUserRequest] from the request body, propagating any errors.
-func (reqBody *createUserRequestBody) toDomain() (domain.CreateUserRequest, error) {
-	email, err := domain.NewEmailAddress(reqBody.Email)
+func (reqBody *createUserRequestBody) toDomain() (user.CreateUserRequest, error) {
+	email, err := user.NewEmailAddress(reqBody.Email)
 	if err != nil {
-		return domain.CreateUserRequest{}, err
+		return user.CreateUserRequest{}, err
 	}
 
-	passwordHash, err := domain.NewPasswordHash(reqBody.Password)
+	passwordHash, err := user.NewPasswordHash(reqBody.Password)
 	if err != nil {
-		return domain.CreateUserRequest{}, err
+		return user.CreateUserRequest{}, err
 	}
 
-	return domain.NewCreateUserRequest(email, passwordHash, domain.Bio(reqBody.Bio)), nil
+	return user.NewCreateUserRequest(email, passwordHash, user.Bio(reqBody.Bio)), nil
 }
 
 type createUserResponseBody struct {
@@ -38,16 +38,16 @@ type createUserResponseBody struct {
 }
 
 // POST /users
-func (uh *userHandler) create(w http.ResponseWriter, r *http.Request) {
-	// Parse the request body into a valid domain representation.
-	domainReq, err := parseCreateUserRequest(r.Body)
+func (handler *userHandler) create(w http.ResponseWriter, r *http.Request) {
+	// Parse the request body into a valid user representation.
+	userReq, err := parseCreateUserRequest(r.Body)
 	if err != nil {
 		handleError(w, err)
 		return
 	}
 
 	// Create a user from valid inputs.
-	user, err := uh.service.Create(domainReq)
+	user, err := handler.service.Create(userReq)
 	if err != nil {
 		handleError(w, err)
 		return
@@ -63,11 +63,11 @@ func (uh *userHandler) create(w http.ResponseWriter, r *http.Request) {
 	_, _ = w.Write(b)
 }
 
-// parseCreateUserRequest attempts to parse a [domain.CreateUserRequest] from the request body, propagating any errors.
-func parseCreateUserRequest(r io.Reader) (domain.CreateUserRequest, error) {
+// parseCreateUserRequest attempts to parse a [user.CreateUserRequest] from the request body, propagating any errors.
+func parseCreateUserRequest(r io.Reader) (user.CreateUserRequest, error) {
 	var reqBody createUserRequestBody
 	if err := json.NewDecoder(r).Decode(&reqBody); err != nil {
-		return domain.CreateUserRequest{}, err
+		return user.CreateUserRequest{}, err
 	}
 
 	return reqBody.toDomain()
@@ -75,7 +75,7 @@ func parseCreateUserRequest(r io.Reader) (domain.CreateUserRequest, error) {
 
 func handleError(w http.ResponseWriter, err error) {
 	switch err := err.(type) {
-	case *domain.ParseError, *domain.ConstraintViolationError:
+	case *user.ParseError, *user.ConstraintViolationError:
 		http.Error(w, err.Error(), http.StatusBadRequest)
 	default:
 		panic(err) // 500
