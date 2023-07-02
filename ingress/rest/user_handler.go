@@ -3,13 +3,13 @@ package rest
 import (
 	"encoding/json"
 	"errors"
-	"github.com/angusgmorrison/typeddtalk/domain"
+	"github.com/angusgmorrison/typeddtalk/domain/users"
 	"net/http"
 )
 
 // userHandler handles all requests to /users.
 type userHandler struct {
-	service domain.UserService
+	service users.Service
 }
 
 type createUserRequestBody struct {
@@ -32,7 +32,7 @@ func (uh *userHandler) create(w http.ResponseWriter, r *http.Request) {
 
 	user, err := uh.service.Create(reqBody.Email, reqBody.Password, reqBody.Bio)
 	if err != nil {
-		if errors.Is(err, &domain.InvalidUserError{}) {
+		if errors.Is(err, &users.InvalidUserError{}) {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
