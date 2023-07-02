@@ -2,8 +2,8 @@ package rest
 
 import (
 	"encoding/json"
-	"errors"
 	"github.com/angusgmorrison/typeddtalk/domain"
+	"io"
 	"net/http"
 )
 
@@ -13,39 +13,71 @@ type userHandler struct {
 }
 
 type createUserRequestBody struct {
-	Email    string
-	Password string
-	Bio      string
+	Email    string `json:"email"`
+	Password string `json:"password"`
+	Bio      string `json:"bio"`
+}
+
+// toDomain attempts to construct a valid [CreateUserRequest] from the request body, propagating any errors.
+func (reqBody *createUserRequestBody) toDomain() (domain.CreateUserRequest, error) {
+	email, err := domain.NewEmailAddress(reqBody.Email)
+	if err != nil {
+		return domain.CreateUserRequest{}, err
+	}
+
+	passwordHash, err := domain.NewPasswordHash(reqBody.Password)
+	if err != nil {
+		return domain.CreateUserRequest{}, err
+	}
+
+	return domain.NewCreateUserRequest(email, passwordHash, domain.Bio(reqBody.Bio)), nil
 }
 
 type createUserResponseBody struct {
 	ID string `json:"id"`
 }
 
+// POST /users
 func (uh *userHandler) create(w http.ResponseWriter, r *http.Request) {
-	var reqBody createUserRequestBody
-	if err := json.NewDecoder(r.Body).Decode(&reqBody); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+	// Parse the request body into a valid domain representation.
+	domainReq, err := parseCreateUserRequest(r.Body)
+	if err != nil {
+		handleError(w, err)
 		return
 	}
-	_ = r.Body.Close()
 
-	user, err := uh.service.Create(reqBody.Email, reqBody.Password, reqBody.Bio)
+	// Create a user from valid inputs.
+	user, err := uh.service.Create(domainReq)
 	if err != nil {
-		if errors.Is(err, &domain.InvalidUserError{}) {
-			http.Error(w, err.Error(), http.StatusBadRequest)
-			return
-		}
-
-		panic(err) // let the recovery middleware handle this
+		handleError(w, err)
+		return
 	}
 
-	resBody := createUserResponseBody{ID: user.ID.String()}
+	// Respond with the user's ID.
+	resBody := createUserResponseBody{ID: user.ID()}
 	b, err := json.Marshal(&resBody)
 	if err != nil {
 		panic(err)
 	}
-
 	w.WriteHeader(http.StatusCreated)
 	_, _ = w.Write(b)
+}
+
+// parseCreateUserRequest attempts to parse a [domain.CreateUserRequest] from the request body, propagating any errors.
+func parseCreateUserRequest(r io.Reader) (domain.CreateUserRequest, error) {
+	var reqBody createUserRequestBody
+	if err := json.NewDecoder(r).Decode(&reqBody); err != nil {
+		return domain.CreateUserRequest{}, err
+	}
+
+	return reqBody.toDomain()
+}
+
+func handleError(w http.ResponseWriter, err error) {
+	switch err := err.(type) {
+	case *domain.ParseError, *domain.ConstraintViolationError:
+		http.Error(w, err.Error(), http.StatusBadRequest)
+	default:
+		panic(err) // 500
+	}
 }
