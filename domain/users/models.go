@@ -1,7 +1,6 @@
 package users
 
 import (
-	"github.com/angusgmorrison/typeddtalk/pkg/typedd"
 	"github.com/google/uuid"
 	"net/mail"
 )
@@ -91,7 +90,7 @@ func (b Bio) Zeroable() bool {
 	return true
 }
 
-// User is a domain model representing a service users. It must be valid at all costs!
+// User is a domain model representing a user account. It must be valid at all costs!
 type User struct {
 	id           UUID
 	email        EmailAddress // required
@@ -100,17 +99,13 @@ type User struct {
 }
 
 // NewUser creates a new, valid [User] with the given fields.
-func NewUser(id UUID, email EmailAddress, passwordHash PasswordHash, bio Bio) (User, error) {
-	if err := typedd.ValidateNonZero(id, email, passwordHash); err != nil {
-		return User{}, err
-	}
-
+func NewUser(id UUID, email EmailAddress, passwordHash PasswordHash, bio Bio) User {
 	return User{
 		id:           id,
 		email:        email,
 		passwordHash: passwordHash,
 		bio:          bio,
-	}, nil
+	}
 }
 
 // Zeroable satisfies [typedd.ZeroAware]. A User cannot be zero.
@@ -141,16 +136,12 @@ type CreateUserRequest struct {
 	bio          Bio
 }
 
-func NewCreateUserRequest(email EmailAddress, passwordHash PasswordHash, bio Bio) (CreateUserRequest, error) {
-	if err := typedd.ValidateNonZero(email, passwordHash); err != nil {
-		return CreateUserRequest{}, err
-	}
-
+func NewCreateUserRequest(email EmailAddress, passwordHash PasswordHash, bio Bio) CreateUserRequest {
 	return CreateUserRequest{
 		email:        email,
 		passwordHash: passwordHash,
 		bio:          bio,
-	}, nil
+	}
 }
 
 // Zeroable satisfies [typedd.ZeroAware]. A CreateUserRequest cannot be zero.

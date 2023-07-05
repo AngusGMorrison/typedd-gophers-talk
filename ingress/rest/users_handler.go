@@ -30,12 +30,7 @@ func (reqBody *createUserRequestBody) toDomain() (users.CreateUserRequest, error
 		return users.CreateUserRequest{}, err
 	}
 
-	req, err := users.NewCreateUserRequest(email, passwordHash, users.Bio(reqBody.Bio))
-	if err != nil {
-		return users.CreateUserRequest{}, err
-	}
-
-	return req, nil
+	return users.NewCreateUserRequest(email, passwordHash, users.Bio(reqBody.Bio)), nil
 }
 
 type createUserResponseBody struct {
@@ -51,7 +46,7 @@ func (handler *usersHandler) create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Create a users from valid inputs.
+	// Create a user from valid inputs.
 	user, err := handler.service.Create(userReq)
 	if err != nil {
 		handleError(w, err)
