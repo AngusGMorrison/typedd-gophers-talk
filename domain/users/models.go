@@ -21,6 +21,11 @@ func NewUUID(raw string) (UUID, error) {
 	return UUID{inner: inner}, nil
 }
 
+// Zeroable satisfies [typedd.ZeroAware]. A UUID cannot be zero.
+func (u UUID) Zeroable() bool {
+	return false
+}
+
 func (u UUID) String() string {
 	return u.inner.String()
 }
@@ -38,6 +43,11 @@ func NewEmailAddress(raw string) (EmailAddress, error) {
 		return EmailAddress{}, NewParseRFC5233EmailError(err)
 	}
 	return EmailAddress{raw: raw}, nil
+}
+
+// Zeroable satisfies [typedd.ZeroAware]. An EmailAddress cannot be zero.
+func (e EmailAddress) Zeroable() bool {
+	return false
 }
 
 func (e EmailAddress) String() string {
@@ -64,12 +74,22 @@ func NewPasswordHash(rawPassword string) (PasswordHash, error) {
 	return PasswordHash{bytes: []byte(rawPassword)}, nil
 }
 
+// Zeroable satisfies [typedd.ZeroAware]. A PasswordHash cannot be zero.
+func (p PasswordHash) Zeroable() bool {
+	return false
+}
+
 func (p PasswordHash) String() string {
 	return string(p.bytes)
 }
 
 // Bio represents a user's biography, which may be empty.
 type Bio string
+
+// Zeroable satisfies [typedd.ZeroAware]. An empty string is a valid Bio.
+func (b Bio) Zeroable() bool {
+	return true
+}
 
 // User is a domain model representing a service users. It must be valid at all costs!
 type User struct {
@@ -91,6 +111,11 @@ func NewUser(id UUID, email EmailAddress, passwordHash PasswordHash, bio Bio) (U
 		passwordHash: passwordHash,
 		bio:          bio,
 	}, nil
+}
+
+// Zeroable satisfies [typedd.ZeroAware]. A User cannot be zero.
+func (u *User) Zeroable() bool {
+	return false
 }
 
 func (u *User) ID() string {
@@ -126,4 +151,9 @@ func NewCreateUserRequest(email EmailAddress, passwordHash PasswordHash, bio Bio
 		passwordHash: passwordHash,
 		bio:          bio,
 	}, nil
+}
+
+// Zeroable satisfies [typedd.ZeroAware]. A CreateUserRequest cannot be zero.
+func (u *CreateUserRequest) Zeroable() bool {
+	return false
 }
