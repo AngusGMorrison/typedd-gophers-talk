@@ -51,7 +51,7 @@ func (handler *usersHandler) create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Create a users from valid inputs.
+	// Create a user from valid inputs.
 	user, err := handler.service.Create(userReq)
 	if err != nil {
 		handleError(w, err)

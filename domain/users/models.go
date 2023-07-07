@@ -21,13 +21,12 @@ func NewUUID(raw string) (UUID, error) {
 	return UUID{inner: inner}, nil
 }
 
-// Zeroable satisfies [typedd.ZeroAware]. A UUID cannot be zero.
-func (u UUID) Zeroable() bool {
-	return false
+func (id UUID) Complete() bool {
+	return id.inner != uuid.Nil
 }
 
-func (u UUID) String() string {
-	return u.inner.String()
+func (id UUID) String() string {
+	return id.inner.String()
 }
 
 // EmailAddress represents an RFC 5322-compliant email address.
@@ -45,13 +44,12 @@ func NewEmailAddress(raw string) (EmailAddress, error) {
 	return EmailAddress{raw: raw}, nil
 }
 
-// Zeroable satisfies [typedd.ZeroAware]. An EmailAddress cannot be zero.
-func (e EmailAddress) Zeroable() bool {
-	return false
+func (ea EmailAddress) Complete() bool {
+	return ea.raw != ""
 }
 
-func (e EmailAddress) String() string {
-	return e.raw
+func (ea EmailAddress) String() string {
+	return ea.raw
 }
 
 // PasswordHash represents a bcrypt-hashed password.
@@ -74,9 +72,8 @@ func NewPasswordHash(rawPassword string) (PasswordHash, error) {
 	return PasswordHash{bytes: []byte(rawPassword)}, nil
 }
 
-// Zeroable satisfies [typedd.ZeroAware]. A PasswordHash cannot be zero.
-func (p PasswordHash) Zeroable() bool {
-	return false
+func (p PasswordHash) Complete() bool {
+	return len(p.bytes) > 0
 }
 
 func (p PasswordHash) String() string {
@@ -86,12 +83,7 @@ func (p PasswordHash) String() string {
 // Bio represents a user's biography, which may be empty.
 type Bio string
 
-// Zeroable satisfies [typedd.ZeroAware]. An empty string is a valid Bio.
-func (b Bio) Zeroable() bool {
-	return true
-}
-
-// User is a domain model representing a service users. It must be valid at all costs!
+// User is a domain model representing a service user. It must be valid at all costs!
 type User struct {
 	id           UUID
 	email        EmailAddress // required
@@ -101,21 +93,22 @@ type User struct {
 
 // NewUser creates a new, valid [User] with the given fields.
 func NewUser(id UUID, email EmailAddress, passwordHash PasswordHash, bio Bio) (User, error) {
-	if err := typedd.ValidateNonZero(id, email, passwordHash); err != nil {
-		return User{}, err
-	}
-
-	return User{
+	user := User{
 		id:           id,
 		email:        email,
 		passwordHash: passwordHash,
 		bio:          bio,
-	}, nil
+	}
+
+	if err := typedd.ValidateCompleteness(&user); err != nil {
+		return User{}, err
+	}
+
+	return user, nil
 }
 
-// Zeroable satisfies [typedd.ZeroAware]. A User cannot be zero.
-func (u *User) Zeroable() bool {
-	return false
+func (u *User) Complete() bool {
+	return u.id.Complete() && u.email.Complete() && u.passwordHash.Complete()
 }
 
 func (u *User) ID() string {
@@ -142,18 +135,19 @@ type CreateUserRequest struct {
 }
 
 func NewCreateUserRequest(email EmailAddress, passwordHash PasswordHash, bio Bio) (CreateUserRequest, error) {
-	if err := typedd.ValidateNonZero(email, passwordHash); err != nil {
-		return CreateUserRequest{}, err
-	}
-
-	return CreateUserRequest{
+	req := CreateUserRequest{
 		email:        email,
 		passwordHash: passwordHash,
 		bio:          bio,
-	}, nil
+	}
+
+	if err := typedd.ValidateCompleteness(&req); err != nil {
+		return CreateUserRequest{}, err
+	}
+
+	return req, nil
 }
 
-// Zeroable satisfies [typedd.ZeroAware]. A CreateUserRequest cannot be zero.
-func (u *CreateUserRequest) Zeroable() bool {
-	return false
+func (req *CreateUserRequest) Complete() bool {
+	return req.email.Complete() && req.passwordHash.Complete()
 }
