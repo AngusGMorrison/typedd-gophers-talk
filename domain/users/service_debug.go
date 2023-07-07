@@ -2,43 +2,67 @@
 
 package users
 
-import "github.com/angusgmorrison/typeddtalk/pkg/typedd"
+import (
+	"github.com/angusgmorrison/typeddtalk/pkg/typedd"
+	"github.com/google/uuid"
+)
 
-// nonZeroService implements [Service] by decorating the release [service] to assert that inputs types that are
+// completeAssertingService implements [Service] by decorating the release [service] to assert that inputs types that are
 // required to be non-zero are actually non-zero.
-type nonZeroService struct {
+type completeAssertingService struct {
 	releaseService Service
 }
 
-// NewService decorates a [service] with non-zero assertions for [Service] input and [Repository] return types.
+// NewService decorates a service with completeness assertions for [Service] input and [Repository] return types.
 func NewService(repo Repository) Service {
-	return &nonZeroService{
+	return &completeAssertingService{
 		releaseService: newService(
-			&nonZeroRepository{releaseRepo: repo},
+			&completeAssertingRepository{releaseRepo: repo},
 		),
 	}
 }
 
-// Create panics if any non-zeroable input, as defined by its implementation of [typedd.ZeroAware] is zero.
-func (s *nonZeroService) Create(req CreateUserRequest) (User, error) {
-	typedd.MustBeNonZero(&req)
+// Create panics if any input implementing [typedd.Complete] is incomplete.
+func (s *completeAssertingService) Create(req CreateUserRequest) (User, error) {
+	typedd.MustBeComplete(&req)
 	return s.releaseService.Create(req)
 }
 
-// nonZeroRepository implements [Repository] by decorating the release [repository] to validate that outputs are
+// completeAssertingRepository implements [Repository] by decorating the release Repository to validate that outputs are
 // non-zero.
-type nonZeroRepository struct {
+type completeAssertingRepository struct {
 	releaseRepo Repository
 }
 
-// Create panics if any non-zeroable output, as defined by its implementation of [typedd.ZeroAware] is zero.
-func (r *nonZeroRepository) Create(req CreateUserRequest) (User, error) {
+// Create panics if the [User] returned by the underlying [Repository.Create] implementation is incomplete.
+func (r *completeAssertingRepository) Create(req CreateUserRequest) (User, error) {
 	user, err := r.releaseRepo.Create(req)
 	if err != nil {
 		return User{}, err
 	}
 
-	typedd.MustBeNonZero(&user)
+	typedd.MustBeComplete(&user)
 
 	return user, nil
+}
+
+// Complete implementations.
+func (ea EmailAddress) Complete() bool {
+	return ea.raw != ""
+}
+
+func (ph PasswordHash) Complete() bool {
+	return len(ph.bytes) > 0
+}
+
+func (id UUID) Complete() bool {
+	return id.inner != uuid.Nil
+}
+
+func (u *User) Complete() bool {
+	return u.id.Complete() && u.email.Complete() && u.passwordHash.Complete()
+}
+
+func (req *CreateUserRequest) Complete() bool {
+	return req.email.Complete() && req.passwordHash.Complete()
 }
