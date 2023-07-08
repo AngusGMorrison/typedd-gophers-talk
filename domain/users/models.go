@@ -3,6 +3,7 @@ package users
 import (
 	"github.com/angusgmorrison/typeddtalk/pkg/typedd"
 	"github.com/google/uuid"
+	"golang.org/x/crypto/bcrypt"
 	"net/mail"
 )
 
@@ -69,7 +70,12 @@ func NewPasswordHash(rawPassword string) (PasswordHash, error) {
 		return PasswordHash{}, NewPasswordLengthError()
 	}
 
-	return PasswordHash{bytes: []byte(rawPassword)}, nil
+	bytes, err := bcrypt.GenerateFromPassword([]byte(rawPassword), bcrypt.DefaultCost)
+	if err != nil {
+		return PasswordHash{}, NewHashPasswordError(err)
+	}
+
+	return PasswordHash{bytes: bytes}, nil
 }
 
 func (p PasswordHash) Complete() bool {
