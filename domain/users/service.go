@@ -14,3 +14,8 @@ func newService(repo Repository) Service {
 func (s *service) Create(req CreateUserRequest) (User, error) {
 	return s.repo.Create(req)
 }
+
+// Update the user identified by req.ID.
+func (s *service) Update(req UpdateUserRequest) error {
+	return s.repo.Update(req)
+}

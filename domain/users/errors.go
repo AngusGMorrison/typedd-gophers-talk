@@ -2,6 +2,7 @@ package users
 
 import "fmt"
 
+// Field represents a field of a domain type.
 type Field int
 
 const (
@@ -11,12 +12,13 @@ const (
 	BioField
 )
 
-var fieldStrings = [4]string{"", "email", "password hash", "bio"}
+var fieldStrings = [4]string{"id", "email", "password hash", "bio"}
 
 func (f Field) String() string {
-	return fieldStrings[f]
+	return fieldStrings[f-1]
 }
 
+// ParseError indicates failure to parse a raw value into a valid domain type.
 type ParseError struct {
 	field    Field
 	messages []string
@@ -75,11 +77,20 @@ func NewHashPasswordError(cause error) *ParseError {
 
 // ConstraintViolationError indicates that a field has violated a repository constraint, such as a unique index.
 type ConstraintViolationError struct {
-	field    Field
-	messages []string
-	cause    error
+	Field    Field
+	Messages []string
+	Cause    error
 }
 
 func (e *ConstraintViolationError) Error() string {
-	return fmt.Sprintf("constraint violation on %s: %v", fieldStrings[e.field], e.messages)
+	return fmt.Sprintf("constraint violation on %s: %v", e.Field, e.Messages)
+}
+
+// NotFoundError indicates that a user was not found for the wrapped ID.
+type NotFoundError struct {
+	UserID UUID
+}
+
+func (e *NotFoundError) Error() string {
+	return fmt.Sprintf("user not found: %s", e.UserID)
 }
