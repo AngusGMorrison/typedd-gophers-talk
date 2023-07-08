@@ -1,7 +1,8 @@
-package user
+package users
 
 import "fmt"
 
+// Field represents a field of a domain type.
 type Field int
 
 const (
@@ -10,12 +11,13 @@ const (
 	BioField
 )
 
-var fieldStrings = [4]string{"", "email", "password hash", "bio"}
+var fieldStrings = [3]string{"email", "password hash", "bio"}
 
 func (f Field) String() string {
-	return fieldStrings[f]
+	return fieldStrings[f-1]
 }
 
+// ParseError indicates failure to parse a raw value into a valid domain type.
 type ParseError struct {
 	field    Field
 	messages []string
@@ -35,7 +37,7 @@ func (e *ParseError) Cause() error {
 }
 
 func (e *ParseError) Error() string {
-	return fmt.Sprintf("invalid %s: %v", fieldStrings[e.field], e.messages)
+	return fmt.Sprintf("invalid %s: %v", e.field, e.messages)
 }
 
 func NewParseRFC5233EmailError(cause error) *ParseError {

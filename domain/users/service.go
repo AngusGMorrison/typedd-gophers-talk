@@ -1,4 +1,4 @@
-package user
+package users
 
 // service is the implementation of Service.
 type service struct {
@@ -11,10 +11,10 @@ func NewService(repo Repository) Service {
 
 // Create a new user.
 // Returns [ConstraintViolationError] if any field violates a repository constraint.
-func (s *service) Create(req CreateUserRequest) (User, error) {
+func (s *service) Create(req *CreateUserRequest) (*User, error) {
 	user, err := s.repo.Create(req)
 	if err != nil {
-		return User{}, err
+		return nil, err
 	}
 
 	return user, nil

@@ -1,7 +1,8 @@
-package user
+package users
 
 import (
 	"github.com/google/uuid"
+	"golang.org/x/crypto/bcrypt"
 	"net/mail"
 )
 
@@ -41,7 +42,12 @@ func NewPasswordHash(rawPassword string) (PasswordHash, error) {
 		return PasswordHash{}, NewPasswordLengthError()
 	}
 
-	return PasswordHash{bytes: []byte(rawPassword)}, nil
+	bytes, err := bcrypt.GenerateFromPassword([]byte(rawPassword), bcrypt.DefaultCost)
+	if err != nil {
+		return PasswordHash{}, NewHashPasswordError(err)
+	}
+
+	return PasswordHash{bytes: bytes}, nil
 }
 
 func (p PasswordHash) String() string {
@@ -53,44 +59,28 @@ type Bio string
 
 // User is a domain model representing a service user. It must be valid at all costs!
 type User struct {
-	id           uuid.UUID
-	email        EmailAddress // required
-	passwordHash PasswordHash // required
-	bio          Bio          // optional
+	ID           uuid.UUID
+	Email        EmailAddress // required
+	PasswordHash PasswordHash // required
+	Bio          Bio          // optional
 }
 
 // NewUser creates a new, valid [User] with the given fields.
-func NewUser(id uuid.UUID, email EmailAddress, passwordHash PasswordHash, bio Bio) User {
-	return User{id: id, email: email, passwordHash: passwordHash, bio: bio}
-}
-
-func (u *User) ID() string {
-	return u.id.String()
-}
-
-func (u *User) Email() EmailAddress {
-	return u.email
-}
-
-func (u *User) PasswordHash() PasswordHash {
-	return u.passwordHash
-}
-
-func (u *User) Bio() Bio {
-	return u.bio
+func NewUser(id uuid.UUID, email EmailAddress, passwordHash PasswordHash, bio Bio) *User {
+	return &User{ID: id, Email: email, PasswordHash: passwordHash, Bio: bio}
 }
 
 // CreateUserRequest contains the valid fields required to create a new [User].
 type CreateUserRequest struct {
-	email        EmailAddress
-	passwordHash PasswordHash
-	bio          Bio
+	Email        EmailAddress
+	PasswordHash PasswordHash
+	Bio          Bio
 }
 
-func NewCreateUserRequest(email EmailAddress, passwordHash PasswordHash, bio Bio) CreateUserRequest {
-	return CreateUserRequest{
-		email:        email,
-		passwordHash: passwordHash,
-		bio:          bio,
+func NewCreateUserRequest(email EmailAddress, passwordHash PasswordHash, bio Bio) *CreateUserRequest {
+	return &CreateUserRequest{
+		Email:        email,
+		PasswordHash: passwordHash,
+		Bio:          bio,
 	}
 }
