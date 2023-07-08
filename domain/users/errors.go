@@ -2,7 +2,7 @@ package users
 
 import "fmt"
 
-// InvalidUserError is returned when users inputs fail validation.
+// InvalidUserError is returned when user inputs fail validation.
 type InvalidUserError struct {
 	cause error
 }

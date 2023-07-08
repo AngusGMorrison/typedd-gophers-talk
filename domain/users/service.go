@@ -1,6 +1,7 @@
 package users
 
 import (
+	"errors"
 	"golang.org/x/crypto/bcrypt"
 	"net/mail"
 )
@@ -14,6 +15,7 @@ func NewUserService(repo Repository) Service {
 	return &service{repo: repo}
 }
 
+// Create validates its inputs and creates a new [User], returning the saved user on success, or an error otherwise.
 func (s *service) Create(email, password, bio string) (*User, error) {
 	if err := validateEmail(email); err != nil {
 		return nil, &InvalidUserError{cause: err}
@@ -31,6 +33,9 @@ func (s *service) Create(email, password, bio string) (*User, error) {
 	user, err := s.repo.Create(email, bio, passwordHash)
 	if err != nil {
 		return nil, &InvalidUserError{cause: err}
+	}
+	if user == nil {
+		panic(errors.New("repository returned nil user on success"))
 	}
 
 	return user, nil
