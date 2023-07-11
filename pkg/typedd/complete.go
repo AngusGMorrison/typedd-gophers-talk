@@ -4,11 +4,11 @@ import (
 	"fmt"
 )
 
-// Complete types require that all of their Complete fields are non-zero.
+// Complete types require that all of their Complete fields are complete.
 type Complete interface {
 	// Complete MUST return false if:
-	// * for primitive types, the value is the zero-value for the type; OR
-	// * for complex types, calling Complete on any of its Complete fields return false.
+	//  * for primitive types, the value is the zero-value for the type, and the zero-value is invalid; OR
+	//  *  for complex types, calling Complete on any of its Complete fields return false.
 	Complete() bool
 }
 
