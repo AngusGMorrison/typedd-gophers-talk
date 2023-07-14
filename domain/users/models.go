@@ -208,3 +208,45 @@ func (req *UpdateUserRequest) PasswordHash() typedd.Option[PasswordHash] {
 func (req *UpdateUserRequest) Bio() typedd.Option[Bio] {
 	return req.bio
 }
+
+// BulkUpdateUserRequest contains a list of [UpdateUserRequest]s, which can be used to update multiple users at once.
+type BulkUpdateUserRequest struct {
+	updateReqs []UpdateUserRequest
+}
+
+func (req *BulkUpdateUserRequest) Complete() bool {
+	if len(req.updateReqs) == 0 {
+		return false
+	}
+
+	for _, updateReq := range req.updateReqs {
+		if !updateReq.Complete() {
+			return false
+		}
+	}
+
+	return true
+}
+
+// NewVulnerableBulkUpdateUserRequest wraps a slice of [UpdateUserRequest]s provided by the caller. Since the caller
+// may have retained a reference to this slice, it is vulnerable to concurrent modification.
+func NewVulnerableBulkUpdateUserRequest(updateReqs []UpdateUserRequest) BulkUpdateUserRequest {
+	return BulkUpdateUserRequest{updateReqs: updateReqs}
+}
+
+// InstantiateBulkUpdateRequestError is returned when a [BulkUpdateUserRequest] is instantiated with no update requests.
+// We must use a custom error type, because exported vars could be overwritten by other packages.
+type InstantiateBulkUpdateRequestError struct{}
+
+func (err InstantiateBulkUpdateRequestError) Error() string {
+	return "no update requests provided"
+}
+
+// NewSafeBulkUpdateUserRequest takes a variadic number of [UpdateUserRequest]s, wrapping the slice created by the Go
+// runtime, to which the caller does not have access.
+func NewSafeBulkUpdateUserRequest(updateReqs ...UpdateUserRequest) (BulkUpdateUserRequest, error) {
+	if len(updateReqs) == 0 {
+		return BulkUpdateUserRequest{}, InstantiateBulkUpdateRequestError{}
+	}
+	return BulkUpdateUserRequest{updateReqs: updateReqs}, nil
+}

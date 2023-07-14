@@ -8,6 +8,9 @@ type Service interface {
 	// Update the user identified by req.ID with the fields provided in req, returning an error if the requested update
 	// cannot be performed.
 	Update(req UpdateUserRequest) error
+
+	// BulkUpdate the users contained in req, returning an error if the requested update cannot be performed.
+	BulkUpdate(req BulkUpdateUserRequest) error
 }
 
 // Repository represents a store of user data.
@@ -20,4 +23,8 @@ type Repository interface {
 	// Update should update the fields of the user identified by req.ID for which a value is provided, or return an
 	// error if the requested update cannot be performed.
 	Update(req UpdateUserRequest) error
+
+	// BulkUpdate should atomically update the fields of the users identified by req for which a value is provided,
+	// or roll back and return an error if any of the requested updates cannot be performed.
+	BulkUpdate(req BulkUpdateUserRequest) error
 }

@@ -33,6 +33,12 @@ func (s *completeAssertingService) Update(req UpdateUserRequest) error {
 	return s.releaseService.Update(req)
 }
 
+// BulkUpdate panics if any input implementing [typedd.Complete] is incomplete.
+func (s *completeAssertingService) BulkUpdate(req BulkUpdateUserRequest) error {
+	typedd.MustBeComplete(&req)
+	return s.releaseService.BulkUpdate(req)
+}
+
 // completeAssertingRepository implements [Repository] by decorating the release Repository to validate that outputs are
 // non-zero.
 type completeAssertingRepository struct {
@@ -53,4 +59,8 @@ func (r *completeAssertingRepository) Create(req CreateUserRequest) (User, error
 
 func (r *completeAssertingRepository) Update(req UpdateUserRequest) error {
 	return r.releaseRepo.Update(req)
+}
+
+func (r *completeAssertingRepository) BulkUpdate(req BulkUpdateUserRequest) error {
+	return r.releaseRepo.BulkUpdate(req)
 }

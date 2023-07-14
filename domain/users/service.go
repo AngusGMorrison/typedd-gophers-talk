@@ -19,3 +19,8 @@ func (s *service) Create(req CreateUserRequest) (User, error) {
 func (s *service) Update(req UpdateUserRequest) error {
 	return s.repo.Update(req)
 }
+
+// BulkUpdate the users contained in req.
+func (s *service) BulkUpdate(req BulkUpdateUserRequest) error {
+	return s.repo.BulkUpdate(req)
+}
