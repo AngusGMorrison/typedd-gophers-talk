@@ -8,26 +8,26 @@ import (
 
 // EmailAddress represents an RFC 5322-compliant email address.
 type EmailAddress struct {
-	raw string
+	Raw string
 }
 
-// NewEmailAddress parses a raw email address according to RFC 5322.
+// NewEmailAddress parses a Raw email address according to RFC 5322.
 // Returns [ParseError] if the address is invalid.
 func NewEmailAddress(raw string) (EmailAddress, error) {
 	_, err := mail.ParseAddress(raw)
 	if err != nil {
 		return EmailAddress{}, NewParseRFC5233EmailError(err)
 	}
-	return EmailAddress{raw: raw}, nil
+	return EmailAddress{Raw: raw}, nil
 }
 
 func (e EmailAddress) String() string {
-	return e.raw
+	return e.Raw
 }
 
 // PasswordHash represents a bcrypt-hashed password.
 type PasswordHash struct {
-	bytes []byte
+	Bytes []byte
 }
 
 const (
@@ -47,11 +47,11 @@ func NewPasswordHash(rawPassword string) (PasswordHash, error) {
 		return PasswordHash{}, NewHashPasswordError(err)
 	}
 
-	return PasswordHash{bytes: bytes}, nil
+	return PasswordHash{Bytes: bytes}, nil
 }
 
 func (p PasswordHash) String() string {
-	return string(p.bytes)
+	return string(p.Bytes)
 }
 
 // Bio represents a user's biography, which may be empty.

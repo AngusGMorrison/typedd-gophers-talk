@@ -17,7 +17,7 @@ func (f Field) String() string {
 	return fieldStrings[f-1]
 }
 
-// ParseError indicates failure to parse a raw value into a valid domain type.
+// ParseError indicates failure to parse a Raw value into a valid domain type.
 type ParseError struct {
 	field    Field
 	messages []string
