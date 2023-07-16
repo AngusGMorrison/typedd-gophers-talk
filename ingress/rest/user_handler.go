@@ -28,7 +28,6 @@ func (uh *userHandler) create(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	_ = r.Body.Close()
 
 	user, err := uh.service.Create(reqBody.Email, reqBody.Password, reqBody.Bio)
 	if err != nil {
