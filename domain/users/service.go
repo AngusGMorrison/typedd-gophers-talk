@@ -1,7 +1,6 @@
 package users
 
 import (
-	"errors"
 	"golang.org/x/crypto/bcrypt"
 	"net/mail"
 )
@@ -33,9 +32,6 @@ func (s *service) Create(email, password, bio string) (*User, error) {
 	user, err := s.repo.Create(email, bio, passwordHash)
 	if err != nil {
 		return nil, &InvalidUserError{cause: err}
-	}
-	if user == nil {
-		panic(errors.New("repository returned nil user on success"))
 	}
 
 	return user, nil
