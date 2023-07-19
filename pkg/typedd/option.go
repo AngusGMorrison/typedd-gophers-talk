@@ -10,6 +10,11 @@ type Option[T any] struct {
 	some  bool
 }
 
+// None returns an empty, zero-valued for Option[T]. Hence, the zero-value of Option is always valid.
+func None[T Complete]() Option[T] {
+	return Option[T]{}
+}
+
 // Some returns an Option[T] containing the given value, which may be T's zero value.
 // Where T: [Complete], invoking Some with a partially-complete value returns [IncompleteTypeError].
 func Some[T any](value T) (Option[T], error) {
@@ -23,11 +28,6 @@ func Some[T any](value T) (Option[T], error) {
 		value: value,
 		some:  true,
 	}, nil
-}
-
-// None returns an empty, zero-valued for Option[T]. Hence, the zero-value of Option is always valid.
-func None[T Complete]() Option[T] {
-	return Option[T]{}
 }
 
 // Value returns the value of the Option[T] and true if it is Some, or T's zero-value and false if it is None.
