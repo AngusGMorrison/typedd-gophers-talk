@@ -228,10 +228,13 @@ func (req *BulkUpdateUserRequest) Complete() bool {
 	return true
 }
 
-// NewVulnerableBulkUpdateUserRequest wraps a slice of [UpdateUserRequest]s provided by the caller. Since the caller
-// may have retained a reference to this slice, it is vulnerable to concurrent modification.
-func NewVulnerableBulkUpdateUserRequest(updateReqs []UpdateUserRequest) BulkUpdateUserRequest {
-	return BulkUpdateUserRequest{updateReqs: updateReqs}
+// NewSafeBulkUpdateUserRequest takes a variadic number of [UpdateUserRequest]s, wrapping the slice created by the Go
+// runtime, to which the caller does not have access.
+func NewSafeBulkUpdateUserRequest(updateReqs ...UpdateUserRequest) (BulkUpdateUserRequest, error) {
+	if len(updateReqs) == 0 {
+		return BulkUpdateUserRequest{}, InstantiateBulkUpdateRequestError{}
+	}
+	return BulkUpdateUserRequest{updateReqs: updateReqs}, nil
 }
 
 // InstantiateBulkUpdateRequestError is returned when a [BulkUpdateUserRequest] is instantiated with no update requests.
@@ -240,13 +243,4 @@ type InstantiateBulkUpdateRequestError struct{}
 
 func (err InstantiateBulkUpdateRequestError) Error() string {
 	return "no update requests provided"
-}
-
-// NewSafeBulkUpdateUserRequest takes a variadic number of [UpdateUserRequest]s, wrapping the slice created by the Go
-// runtime, to which the caller does not have access.
-func NewSafeBulkUpdateUserRequest(updateReqs ...UpdateUserRequest) (BulkUpdateUserRequest, error) {
-	if len(updateReqs) == 0 {
-		return BulkUpdateUserRequest{}, InstantiateBulkUpdateRequestError{}
-	}
-	return BulkUpdateUserRequest{updateReqs: updateReqs}, nil
 }

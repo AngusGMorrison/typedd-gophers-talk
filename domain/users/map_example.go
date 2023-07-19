@@ -4,12 +4,6 @@ type UserMetadata struct {
 	m map[string]string
 }
 
-// NewVulnerableUserMetadata wraps the caller-provided map, trusting that they won't do anything nasty with their
-// reference to it. Yuck!
-func NewVulnerableUserMetadata(m map[string]string) UserMetadata {
-	return UserMetadata{m: m}
-}
-
 // Pair is a simple key-value pair.
 type Pair[T comparable, U any] struct {
 	key T
